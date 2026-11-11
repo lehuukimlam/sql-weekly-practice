@@ -1,0 +1,5 @@
+-- Lam's FINAL query, submitted 2026-09-28.
+-- Original line breaks from the chat archive were not preserved;
+-- the SQL text is otherwise unchanged.
+
+WITH fact AS (SELECT i.order_id, i.product_id, i.qty, i.unit_price, SUM(i.qty * i.unit_price) per_order_total, o.customer_id, o.order_date, o.status FROM order_items i LEFT JOIN orders o ON i.order_id = o.order_id WHERE o.status = 'completed' GROUP BY i.order_id, i.product_id, o.customer_id, o.order_date, o.status, i.qty, i.unit_price) , customer_info_basic AS (SELECT customer_id, order_id, order_date, sum(per_order_total) order_total FROM fact GROUP BY customer_id, order_id, order_date), customer_info_1 AS (SELECT customer_id, order_id, order_date, order_total, ROW_NUMBER() OVER (PARTITION BY customer_id ORDER BY order_date ASC) order_number, LAG(order_date) OVER (PARTITION BY customer_id ORDER BY order_date) pre_date FROM customer_info_basic) SELECT customer_id, order_date, order_total, order_number, COALESCE(DATE(order_date) - DATE(pre_date),NULL) days_since_prev_order FROM customer_info_1;

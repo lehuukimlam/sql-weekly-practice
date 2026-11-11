@@ -1,0 +1,5 @@
+-- Lam's FINAL query, submitted 2026-10-12.
+-- Original line breaks from the chat archive were not preserved;
+-- the SQL text is otherwise unchanged.
+
+WITH agents_team AS (SELECT a.agent_id, a.agent_name, t.team_name FROM agents a JOIN teams t ON a.team_id = t.team_id) , tickets_all AS (SELECT t.ticket_id, t.created_at, t.resolved_at, t.status, t.rating, t.resolved_at - t.created_at duration, a.team_name, a.agent_name FROM tickets t LEFT JOIN agents_team a ON t.agent_id = a.agent_id WHERE t.status = 'resolved' AND t.created_at BETWEEN '2026-09-01' AND '2026-09-30') , tickets_metrics AS (SELECT team_name, COUNT(DISTINCT resolved_at) resolved_tickets, COUNT(DISTINCT agent_name) agents_with_resolved, ROUND(AVG(duration),1) avg_days_to_resolve, ROUND(AVG(rating),2) avg_rating FROM tickets_all GROUP BY team_name) SELECT t.team_name, COALESCE(m.resolved_tickets,0) resolved_ticket, COALESCE(m.agents_with_resolved,0) agents_with_resolved, m.avg_days_to_resolve, m.avg_rating FROM teams t LEFT JOIN tickets_metrics m ON t.team_name = m.team_name ORDER BY COALESCE(m.resolved_tickets,0) DESC, t.team_name DESC;

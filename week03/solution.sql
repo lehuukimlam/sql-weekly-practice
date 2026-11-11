@@ -1,0 +1,5 @@
+-- Lam's FINAL query, submitted 2026-10-06.
+-- Original line breaks from the chat archive were not preserved;
+-- the SQL text is otherwise unchanged.
+
+WITH orders_info_1 AS (SELECT o.order_id, r.cuisine, o.order_date FROM orders o LEFT JOIN restaurants r ON o.restaurant_id = r.restaurant_id WHERE o.status = 'completed' AND o.order_date BETWEEN '2026-09-01' AND '2026-09-30'), refund_summed AS (SELECT order_id, SUM(amount) refunds1 FROM refunds GROUP BY order_id), order_info_2 AS (SELECT oi.order_id, SUM(oi.qty * oi.unit_price) gross_revenue1, o.cuisine FROM order_items oi LEFT JOIN orders_info_1 o ON oi.order_id = o.order_id WHERE o.cuisine IS NOT NULL GROUP BY oi.order_id, o.cuisine), order_full_info AS (SELECT o2.order_id, o2.gross_revenue1, o2.cuisine, COALESCE(r.refunds1,0) refunds1 FROM order_info_2 o2 LEFT JOIN refund_summed r ON o2.order_id = r.order_id) SELECT cuisine, COUNT(*) completed_orders, SUM(gross_revenue1) gross_revenue, SUM(refunds1) refunds, SUM(gross_revenue1) - SUM(refunds1) net_revenue, ROUND(SUM(refunds1) / SUM(gross_revenue1) * 100,1) refund_rate_pct FROM order_full_info GROUP BY cuisine HAVING COUNT(*) > 1 ORDER BY net_revenue DESC;

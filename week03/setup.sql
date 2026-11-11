@@ -1,0 +1,10 @@
+DROP TABLE IF EXISTS w3_refunds, w3_order_items, w3_orders, w3_restaurants, refunds, restaurants CASCADE;
+DROP TABLE IF EXISTS order_items, orders CASCADE;
+CREATE TABLE restaurants (restaurant_id int PRIMARY KEY, name text, cuisine text);
+INSERT INTO restaurants VALUES (1,'Pho Nam','Vietnamese'),(2,'Banh Mi Bros','Vietnamese'),(3,'Tokyo Bowl','Japanese'),(4,'Sushi Go','Japanese'),(5,'Pasta Vita','Italian');
+CREATE TABLE orders (order_id int PRIMARY KEY, restaurant_id int REFERENCES restaurants, order_date date, status text);
+INSERT INTO orders VALUES (201,1,'2026-09-02','completed'),(202,1,'2026-09-10','completed'),(203,2,'2026-09-11','cancelled'),(204,2,'2026-09-15','completed'),(205,3,'2026-09-05','completed'),(206,3,'2026-09-20','completed'),(207,4,'2026-08-30','completed'),(208,4,'2026-09-25','cancelled'),(209,5,'2026-09-18','completed'),(210,3,'2026-10-01','completed');
+CREATE TABLE order_items (order_id int REFERENCES orders, item_name text, qty int, unit_price numeric(10,2));
+INSERT INTO order_items VALUES (201,'Pho bo',2,15.00),(201,'Spring rolls',1,8.00),(202,'Pho ga',1,14.00),(203,'Banh mi',3,9.00),(204,'Banh mi',2,9.00),(204,'Iced coffee',2,5.00),(205,'Ramen',2,18.00),(205,'Gyoza',1,10.00),(205,'Edamame',1,6.00),(206,'Katsu don',1,20.00),(207,'Sushi set',2,25.00),(208,'Sushi set',1,25.00),(209,'Carbonara',2,22.00),(209,'Tiramisu',1,12.00),(210,'Ramen',1,18.00);
+CREATE TABLE refunds (refund_id int PRIMARY KEY, order_id int REFERENCES orders, amount numeric(10,2));
+INSERT INTO refunds VALUES (1,201,8.00),(2,201,4.00),(3,205,10.00),(4,209,12.00);

@@ -1,0 +1,5 @@
+-- Lam's FINAL query, submitted 2026-10-27.
+-- Original line breaks from the chat archive were not preserved;
+-- the SQL text is otherwise unchanged.
+
+WITH member_plan AS (SELECT m.member_id, p.plan_name FROM members M JOIN plans p ON p.plan_id = m.plan_id) , payments_full AS (SELECT p.payment_id, p.member_id, p.paid_at, p.amount, p.status, DATE_TRUNC('month',p.paid_at) month_start, m.plan_name FROM payments p FULL JOIN member_plan m ON p.member_id = m.member_id WHERE p.paid_at >= '2026-08-01') , payments_metrics_1 AS (SELECT plan_name, month_start, COUNT(DISTINCT CASE WHEN status = 'paid' THEN member_id END) AS paying_members, COALESCE(SUM(CASE WHEN status = 'paid' THEN amount END),0) AS revenue FROM payments_full GROUP BY plan_name, month_start) SELECT plan_name, month_start, paying_members, revenue, LAG(revenue) OVER (PARTITION BY plan_name ORDER BY month_start) prev_month_revenue, revenue - LAG(revenue) OVER (PARTITION BY plan_name ORDER BY month_start) change, DENSE_RANK() OVER (PARTITION BY month_start ORDER BY revenue DESC) revenue_rank FROM payments_metrics_1 ORDER BY month_start, revenue_rank ASC, plan_name;
